@@ -1,8 +1,19 @@
+use lazy_static::lazy_static;
+use sentiment::analyze;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::env;
 use std::process::exit;
 use twitter_stream::rt::{self, Future, Stream};
 use twitter_stream::{Token, TwitterStreamBuilder};
+
+lazy_static! {
+    static ref kw_sentiment: HashMap<String, f32> = { HashMap::new() };
+}
+
+lazy_static! {
+    static ref kw_count: HashMap<String, i32> = { HashMap::new() };
+}
 
 fn main() {
     let token = Token::new(
@@ -16,25 +27,40 @@ fn main() {
     if args.len() != 1 + 1 {
         println!(
             "usage: tweed keywords
-
+let
 where keywords is a comma-separated list of topic keywords
 "
         );
         exit(1);
     }
-    let keywords: &str = &args[1].to_string();
+    let keywords_str: &str = &args[1];
+    // FIXME
+    let keywords: Vec<&str> = vec![keywords_str];
+    // let keywords: Vec<&str> = keywords_str.clone().split(",").collect();
 
     let future = TwitterStreamBuilder::filter(token)
-        .track(Some(keywords))
+        // .track(Some(keywords_str))
         .listen()
         .unwrap()
         .flatten_stream()
+        .take(5)
         .for_each(|json| {
             let tr: serde_json::Result<Tweet> = serde_json::from_str(&json.to_string());
             match tr {
                 Err(_e) => (),
-                Ok(t) => println!("{}\n", t.text),
+                Ok(t) => {
+                    println!("{}\n", t.text);
+                    let score = analyze(t.text.clone()).comparative;
+                    for kw in keywords.clone() {
+                        let kw2: String = kw.to_string();
+                        if t.text.contains(kw) {
+                            *kw_sentiment.entry(kw2.clone()).or_insert(0.0f32) += score;
+                            *kw_count.entry(kw2).or_insert(0i32) += 1
+                        }
+                    }
+                }
             }
+
             Ok(())
         })
         .map_err(|e| println!("error: {}", e));
