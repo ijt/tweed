@@ -42,8 +42,8 @@ where keywords is a comma-separated list of topic keywords
             match tr {
                 Err(_e) => (),
                 Ok(t) => {
-                    println!("{}\n", t.text);
                     let score = analyze(t.text.clone()).comparative;
+                    println!("{}: {}\n", score, t.text);
                     for kw in keywords.clone() {
                         let kw2: String = kw.to_string();
                         if t.text.contains(kw) {
@@ -61,6 +61,13 @@ where keywords is a comma-separated list of topic keywords
     if let Err(e) = block_on_all(future) {
         println!("Stream error: {:?}", e);
         println!("Disconnected")
+    }
+
+    for kw in keywords {
+        let s = kw_sentiment.get(kw).unwrap_or(&0.0f32);
+        let n = kw_count.get(kw).unwrap_or(&0i32);
+        let s2 = s / (*n as f32);
+        println!("{}: {}", kw, s2);
     }
 }
 
