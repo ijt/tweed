@@ -9,10 +9,10 @@ use twitter_stream::{Token, TwitterStreamBuilder};
 
 fn main() {
     let token = Token::new(
-        env::var("CONSUMER_KEY").unwrap(),
-        env::var("CONSUMER_SECRET").unwrap(),
-        env::var("ACCESS_KEY").unwrap(),
-        env::var("ACCESS_SECRET").unwrap(),
+        getenv("CONSUMER_KEY"),
+        getenv("CONSUMER_SECRET"),
+        getenv("ACCESS_KEY"),
+        getenv("ACCESS_SECRET"),
     );
 
     let args: Vec<String> = env::args().collect();
@@ -68,4 +68,14 @@ where keywords is a comma-separated list of topic keywords
 struct Tweet {
     created_at: String,
     text: String,
+}
+
+fn getenv(s: &str) -> String {
+    match env::var(s) {
+        Ok(v) => v,
+        Err(_) => {
+            println!("${} not defined", s);
+            exit(1);
+        }
+    }
 }
