@@ -6,7 +6,8 @@ The browser side is done with plot.ly. It keeps a websocket open to the server
 side to stream the latest sentiment values.
 
 The backend is a Rust program that runs a webserver plus a thread that pulls
-tweets from Twitter once per minute and saves them to a SQLite database.
+tweets from Twitter and saves their time-averaged sentiment scores to a SQLite
+database.
 
 ### Schema
 
@@ -22,6 +23,16 @@ CREATE TABLE sentiments(
 
 The sentiments are calculated as the average sentiment for the tweets for the
 keyword over the sampling interval.
+
+### Time-averaged sentiment
+
+Two hashmaps are updated from the incoming tweets, one counting how many
+tweets match each keyword and another adding up the sentiment values for
+each keyword.
+
+Periodically, the average sentiment for each keyword is computed from these
+hashmaps and stored in the database. The hashmaps are then cleared for the
+next interval.
 
 ## Deployment
 
