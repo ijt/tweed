@@ -8,6 +8,7 @@ edition = "2018"
 twitter-stream = "0.9"
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-sentiment = "0.1.1"
-lazy_static = "1.4.0"
+sentiment = "0.1"
+lazy_static = "1.4"
+tokio = "0.1"
 

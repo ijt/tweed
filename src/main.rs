@@ -1,19 +1,11 @@
-use lazy_static::lazy_static;
 use sentiment::analyze;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::env;
 use std::process::exit;
-use twitter_stream::rt::{self, Future, Stream};
+use tokio::runtime::current_thread::block_on_all;
+use twitter_stream::rt::{Future, Stream};
 use twitter_stream::{Token, TwitterStreamBuilder};
-
-lazy_static! {
-    static ref kw_sentiment: HashMap<String, f32> = { HashMap::new() };
-}
-
-lazy_static! {
-    static ref kw_count: HashMap<String, i32> = { HashMap::new() };
-}
 
 fn main() {
     let token = Token::new(
@@ -27,19 +19,20 @@ fn main() {
     if args.len() != 1 + 1 {
         println!(
             "usage: tweed keywords
-let
+
 where keywords is a comma-separated list of topic keywords
 "
         );
         exit(1);
     }
     let keywords_str: &str = &args[1];
-    // FIXME
-    let keywords: Vec<&str> = vec![keywords_str];
-    // let keywords: Vec<&str> = keywords_str.clone().split(",").collect();
+    let keywords: Vec<&str> = keywords_str.clone().split(",").collect();
+
+    let mut kw_sentiment: HashMap<String, f32> = HashMap::new();
+    let mut kw_count: HashMap<String, i32> = HashMap::new();
 
     let future = TwitterStreamBuilder::filter(token)
-        // .track(Some(keywords_str))
+        .track(Some(keywords_str))
         .listen()
         .unwrap()
         .flatten_stream()
@@ -65,7 +58,10 @@ where keywords is a comma-separated list of topic keywords
         })
         .map_err(|e| println!("error: {}", e));
 
-    rt::run(future);
+    if let Err(e) = block_on_all(future) {
+        println!("Stream error: {:?}", e);
+        println!("Disconnected")
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
