@@ -8,6 +8,21 @@ side to stream the latest sentiment values.
 The backend is a Rust program that runs a webserver plus a thread that pulls
 tweets from Twitter once per minute and saves them to a SQLite database.
 
+### Schema
+
+The schema for the time series is something like this:
+
+```sql
+CREATE TABLE sentiments(
+	timestamp INTEGER,
+	keyword TEXT,
+	sentiment FLOAT,
+)
+```
+
+The sentiments are calculated as the average sentiment for the tweets for the
+keyword over the sampling interval.
+
 ## Deployment
 
 ```
