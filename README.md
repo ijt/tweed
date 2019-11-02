@@ -39,7 +39,7 @@ keywords: comma-separated list of keywords to plot, default "", meaning all of t
 ## Deployment
 
 ```
-cargo build --target=x86_64-unknown-linux-gnu --features 'standalone'
+cargo build --target=x86_64-unknown-linux-gnu
 ```
 Copy `target/x86_64-unknown-linux-gnu/release/tweed` to a VM in the cloud and run it there under upstart.
 
