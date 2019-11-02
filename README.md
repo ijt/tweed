@@ -2,15 +2,15 @@
 
 ## System structure
 
-The browser side is done with plot.ly.
+The browser side is done with [plot.ly](https://plot.ly/javascript/).
 
-The backend is a Rust program that runs a webserver to generate plots plus a thread that pulls
+The backend is a Rust program that runs a webserver to generate plots plus a thread called tweeteater that pulls
 tweets from Twitter, computes their sentiment scores and saves the scores to a SQLite database.
 
 Here is a diagram showing how the information flows:
 
 ```
-|Twitter API| => |tweet eater thread| => |SQLite db| => |webserver thread| => |plotly in browser|
+|Twitter API| => |tweeteater thread| => |SQLite db| => |webserver thread| => |plotly in browser|
 ```
 
 ### Schema
