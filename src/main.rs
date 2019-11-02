@@ -8,7 +8,7 @@ use rusqlite::Connection;
 use rusqlite::NO_PARAMS;
 use sentiment::analyze;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::env;
 use std::process::exit;
 use std::thread;
@@ -121,8 +121,8 @@ fn root() -> Html<String> {
         .unwrap();
 
     // Gather up mapping of keyword -> [(x, y)]
-    let mut keys_to_xs: HashMap<String, Vec<String>> = HashMap::new();
-    let mut keys_to_ys: HashMap<String, Vec<String>> = HashMap::new();
+    let mut keys_to_xs: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    let mut keys_to_ys: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for s in sentiments {
         let s2 = s.unwrap();
         let d = UNIX_EPOCH + Duration::from_secs(s2.timestamp as u64);
