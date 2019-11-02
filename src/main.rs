@@ -45,7 +45,7 @@ where keywords is a comma-separated list of topic keywords
         "create table if not exists sentiments(
             timestamp integer not null,
             keyword text not null,
-            sentiment float not null,
+            score float not null,
             tweet text not null
         )",
         NO_PARAMS,
@@ -63,13 +63,11 @@ where keywords is a comma-separated list of topic keywords
                 Err(_e) => (),
                 Ok(t) => {
                     let score = analyze(t.text.clone()).comparative;
-
-                    println!("{}: {}\n", score, t.text);
                     for kw in keywords.clone() {
                         let kw2: String = kw.to_string();
                         if t.text.contains(kw) {
                             conn.execute(
-                                "insert into sentiments (timestamp, keyword, sentiment, tweet)
+                                "insert into sentiments (timestamp, keyword, score, tweet)
                                      values (cast(strftime('%s', 'now') as int), ?1, ?2, ?3)
                                     ",
                                 &[&kw2, &format!("{}", score), &t.text],
@@ -98,7 +96,38 @@ fn serve_plots() {
 fn root() -> String {
     let conn = Connection::open(getenv("TWEED_DB_PATH")).unwrap();
 
-    format!("Welcome to tweed!")
+    let mut stmt = conn
+        .prepare(
+            "
+        select timestamp, keyword, score
+        from sentiments
+    ",
+        )
+        .unwrap();
+
+    let sentiments = stmt
+        .query_map(NO_PARAMS, |row| {
+            Ok(Sentiment {
+                timestamp: row.get(0).unwrap(),
+                keyword: row.get(1).unwrap(),
+                score: row.get(2).unwrap(),
+            })
+        })
+        .unwrap();
+
+    let mut out = String::new();
+    for s in sentiments {
+        let s2 = s.unwrap();
+        out.push_str(&format!("{}: {}: {}<br>", s2.timestamp, s2.keyword, s2.score).to_string());
+    }
+
+    out
+}
+
+struct Sentiment {
+    timestamp: i64,
+    keyword: String,
+    score: f64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
