@@ -1,3 +1,6 @@
+#![feature(proc_macro_hygiene, decl_macro)]
+
+use rocket::{get, routes};
 use rusqlite::Connection;
 use rusqlite::NO_PARAMS;
 use sentiment::analyze;
@@ -87,7 +90,16 @@ where keywords is a comma-separated list of topic keywords
     }
 }
 
-fn serve_plots() {}
+fn serve_plots() {
+    rocket::ignite().mount("/", routes![root]).launch();
+}
+
+#[get("/")]
+fn root() -> String {
+    let conn = Connection::open(getenv("TWEED_DB_PATH")).unwrap();
+
+    format!("Welcome to tweed!")
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Tweet {
