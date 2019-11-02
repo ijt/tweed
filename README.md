@@ -36,10 +36,17 @@ sigma: amount of jitter to add to prevent points from overlapping, e.g., 0.001, 
 size: point size in pixels, default 4
 keywords: comma-separated list of keywords to plot, default "", meaning all of them
 
-## Deployment
+## How to run it
 
+Start by getting your Twitter development credentials, then plug them into this incantation:
 ```
-cargo build --target=x86_64-unknown-linux-gnu
+$ CONSUMER_KEY=<consumer key> \
+CONSUMER_SECRET=<consumer secret> \
+ACCESS_KEY=<access key> \
+ACCESS_SECRET=<access secret> \
+TWEED_DB_PATH=tweed.db \
+cargo run dogs,cats,monkeys
 ```
-Copy `target/x86_64-unknown-linux-gnu/release/tweed` to a VM in the cloud and run it there under upstart.
+where `dogs,cats,monkeys` is one example of tweet keywords to track.
 
+You can see the result by visiting `http://localhost:8000` and refreshing to get the latest data as it comes in.
