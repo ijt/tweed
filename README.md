@@ -7,6 +7,12 @@ The browser side is done with plot.ly.
 The backend is a Rust program that runs a webserver to generate plots plus a thread that pulls
 tweets from Twitter, computes their sentiment scores and saves the scores to a SQLite database.
 
+Here is a diagram showing how the information flows:
+
+```
+|Twitter API| => |tweet eater thread| => |SQLite db| => |webserver thread| => |plotly in browser|
+```
+
 ### Schema
 
 The schema for the time series is as follows:
