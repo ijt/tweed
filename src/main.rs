@@ -151,6 +151,8 @@ fn root() -> Html<String> {
             "
             {{
                 name: \"{}\",
+                mode: \"markers\",
+                type: \"scatter\",
                 x: [{}],
                 y: [{}]
             }},
