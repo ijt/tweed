@@ -17,8 +17,8 @@ pub fn serve_plots() {
 
 /// The sigma parameter specifies the standard deviation of some jitter for the scatter points
 /// so they don't overlap as much.
-#[get("/?<sigma>&<size>")]
-fn root(sigma: Option<f64>, size: Option<i32>) -> Html<String> {
+#[get("/?<sigma>&<size>&<keywords>")]
+fn root(sigma: Option<f64>, size: Option<i32>, keywords: Option<String>) -> Html<String> {
     let conn = Connection::open(getenv("TWEED_DB_PATH")).unwrap();
 
     // Get the sentiments from the database.
@@ -40,16 +40,30 @@ fn root(sigma: Option<f64>, size: Option<i32>) -> Html<String> {
         })
         .unwrap();
 
+    // Filter out keywords if the keywords parameter is specified.
+    let keywords = keywords.unwrap_or("".to_string());
+    let keywords: Vec<&str> = if keywords == "" {
+        vec![]
+    } else {
+        keywords.split(",").collect()
+    };
+
     // Gather up mapping of keyword -> [(x, y)]
     let mut keys_to_xs: BTreeMap<String, Vec<String>> = BTreeMap::new();
     let mut keys_to_ys: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for s in sentiments {
         let s2 = s.unwrap();
+        // Filter out tweets not in the list of keywords if some have been specified.
+        let kw: &str = &s2.keyword.to_string();
+        if keywords.len() > 0 && !keywords.contains(&kw) {
+            continue;
+        }
         let d = UNIX_EPOCH + Duration::from_secs(s2.timestamp as u64);
         let datetime = DateTime::<Utc>::from(d);
         let timestamp_str = datetime.format("'%Y-%m-%d %H:%M:%S'").to_string();
         let x = format!("{}", timestamp_str);
-        let noise = Normal::new(0.0f64, sigma.unwrap_or(0.0f64)).sample(&mut rand::thread_rng());
+        let distro = Normal::new(0.0f64, sigma.unwrap_or(0.0f64));
+        let noise = distro.sample(&mut rand::thread_rng());
         let y = format!("{}", s2.score + noise);
         (*keys_to_xs.entry(s2.keyword.clone()).or_insert(vec![])).push(x);
         (*keys_to_ys.entry(s2.keyword).or_insert(vec![])).push(y);
