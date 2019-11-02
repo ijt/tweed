@@ -1,3 +1,4 @@
+use chrono::DateTime;
 use rusqlite::Connection;
 use rusqlite::NO_PARAMS;
 use sentiment::analyze;
@@ -54,12 +55,14 @@ where keywords is a comma-separated list of topic keywords
                     let score = analyze(t.text.clone()).comparative;
                     for kw in keywords.clone() {
                         let kw2: String = kw.to_string();
+                        let ts = parse_tweet_datetime(&t.created_at.to_string());
+                        let tss: &str = &format!("{}", ts).to_string();
                         if t.text.contains(kw) {
                             conn.execute(
                                 "insert into sentiments (timestamp, keyword, score, tweet)
-                                     values (cast(strftime('%s', 'now') as int), ?1, ?2, ?3)
+                                     values (?1, ?2, ?3, ?4)
                                     ",
-                                &[&kw2, &format!("{}", score), &t.text],
+                                &[tss, &kw2, &format!("{}", score), &t.text],
                             )
                             .unwrap();
                         }
@@ -90,5 +93,24 @@ fn getenv(s: &str) -> String {
             println!("${} not defined", s);
             exit(1);
         }
+    }
+}
+
+fn parse_tweet_datetime(dts: &str) -> i64 {
+    let fmt = "%a %b %d %H:%M:%S %z %Y";
+    let dt = DateTime::parse_from_str(dts, fmt).unwrap();
+    dt.timestamp()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_tweet_datetime() {
+        assert_eq!(
+            parse_tweet_datetime("Wed Oct 10 20:19:24 +0000 2018"),
+            1539202764
+        );
     }
 }
