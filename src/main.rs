@@ -146,6 +146,13 @@ fn root() -> Html<String> {
     <div id=\"plot\" style=\"width:100%;height:100%;\"></div>
     <script>
         var p = document.getElementById('plot');
+
+        var layout = {
+          title: 'Tweet Sentiments',
+          xaxis: { title: 'Time' },
+          yaxis: { title: 'Sentiment' },
+        };
+
         Plotly.plot( p, [",
     );
 
@@ -169,7 +176,7 @@ fn root() -> Html<String> {
     }
     out.push_str(
         "
-        ]);
+        ], layout);
     </script>
     ",
     );
