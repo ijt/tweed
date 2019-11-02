@@ -39,7 +39,7 @@ where keywords is a comma-separated list of topic keywords
     let keywords: Vec<&str> = keywords_str.clone().split(",").collect();
 
     conn.execute(
-        "create table sentiments if not exists(
+        "create table if not exists sentiments(
             timestamp integer not null,
             keyword text not null,
             sentiment float not null,
