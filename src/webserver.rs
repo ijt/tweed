@@ -17,8 +17,8 @@ pub fn serve_plots() {
 
 /// The sigma parameter specifies the standard deviation of some jitter for the scatter points
 /// so they don't overlap as much.
-#[get("/?<sigma>")]
-fn root(sigma: Option<f64>) -> Html<String> {
+#[get("/?<sigma>&<size>")]
+fn root(sigma: Option<f64>, size: Option<i32>) -> Html<String> {
     let conn = Connection::open(getenv("TWEED_DB_PATH")).unwrap();
 
     // Get the sentiments from the database.
@@ -86,12 +86,16 @@ fn root(sigma: Option<f64>) -> Html<String> {
             {{
                 name: \"{}\",
                 mode: \"markers\",
+                marker: {{ size: {size} }},
                 type: \"scatter\",
                 x: [{}],
                 y: [{}]
             }},
 ",
-            k, xs_str, ys_str
+            k,
+            xs_str,
+            ys_str,
+            size = size.unwrap_or(4i32)
         );
         out.push_str(&part.to_string());
     }
