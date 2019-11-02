@@ -35,8 +35,7 @@ where keywords is a comma-separated list of topic keywords
         "create table if not exists sentiments(
             timestamp integer not null,
             keyword text not null,
-            score float not null,
-            tweet text not null
+            score float not null
         )",
         NO_PARAMS,
     )
@@ -59,10 +58,10 @@ where keywords is a comma-separated list of topic keywords
                         let tss: &str = &format!("{}", ts).to_string();
                         if t.text.contains(kw) {
                             conn.execute(
-                                "insert into sentiments (timestamp, keyword, score, tweet)
-                                     values (?1, ?2, ?3, ?4)
+                                "insert into sentiments (timestamp, keyword, score)
+                                     values (?1, ?2, ?3)
                                     ",
-                                &[tss, &kw2, &format!("{}", score), &t.text],
+                                &[tss, &kw2, &format!("{}", score)],
                             )
                             .unwrap();
                         }
