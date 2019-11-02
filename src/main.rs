@@ -6,6 +6,7 @@ use rusqlite::Connection;
 use rusqlite::NO_PARAMS;
 use sentiment::analyze;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::env;
 use std::process::exit;
 use std::thread;
@@ -97,6 +98,7 @@ fn serve_plots() {
 fn root() -> Html<String> {
     let conn = Connection::open(getenv("TWEED_DB_PATH")).unwrap();
 
+    // Get the sentiments from the database.
     let mut stmt = conn
         .prepare(
             "
@@ -105,7 +107,6 @@ fn root() -> Html<String> {
     ",
         )
         .unwrap();
-
     let sentiments = stmt
         .query_map(NO_PARAMS, |row| {
             Ok(Sentiment {
@@ -116,12 +117,55 @@ fn root() -> Html<String> {
         })
         .unwrap();
 
-    let mut out = String::new();
-    out.push_str("<html><body>");
+    // Gather up mapping of keyword -> [(x, y)]
+    let mut keys_to_xs: HashMap<String, Vec<String>> = HashMap::new();
+    let mut keys_to_ys: HashMap<String, Vec<String>> = HashMap::new();
     for s in sentiments {
         let s2 = s.unwrap();
-        out.push_str(&format!("{}: {}: {}<br>", s2.timestamp, s2.keyword, s2.score).to_string());
+        let x = format!("{}", s2.timestamp);
+        let y = format!("{}", s2.score);
+        (*keys_to_xs.entry(s2.keyword.clone()).or_insert(vec![])).push(x);
+        (*keys_to_ys.entry(s2.keyword).or_insert(vec![])).push(y);
     }
+
+    // Output the HTML with the plot.
+    let mut out = String::new();
+    out.push_str(
+        "
+<html>
+    <head>
+        <script src=\"https://cdn.plot.ly/plotly-1.5.0.min.js\"></script>
+    </head>
+    <body>
+    <div id=\"plot\" style=\"width:100%;height:100%;\"></div>
+    <script>
+        var p = document.getElementById('plot');
+        Plotly.plot( p, [",
+    );
+
+    for (k, xs) in &keys_to_xs {
+        let ys = keys_to_ys.get(k).unwrap();
+        let xs_str = xs.join(", ");
+        let ys_str = ys.join(", ");
+        let part = format!(
+            "
+            {{
+                name: \"{}\",
+                x: [{}],
+                y: [{}]
+            }},
+",
+            k, xs_str, ys_str
+        );
+        out.push_str(&part.to_string());
+    }
+    out.push_str(
+        "
+        ]
+    );
+    </script>
+    ",
+    );
     out.push_str("</body></html>");
 
     Html(out)
