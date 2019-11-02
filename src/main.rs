@@ -1,3 +1,5 @@
+use rusqlite::NO_PARAMS;
+use rusqlite::{Connection, Result};
 use sentiment::analyze;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -31,12 +33,23 @@ where keywords is a comma-separated list of topic keywords
     let mut kw_sentiment: HashMap<String, f32> = HashMap::new();
     let mut kw_count: HashMap<String, i32> = HashMap::new();
 
+    let conn = Connection::open("tweed.db")?;
+
+    conn.execute(
+        "create table sentiments if not exists(
+            timestamp integer not null,
+            keyword text not null,
+            sentiment float not null
+        )",
+        NO_PARAMS,
+    )?;
+
     let future = TwitterStreamBuilder::filter(token)
         .track(Some(keywords_str))
         .listen()
         .unwrap()
         .flatten_stream()
-        .take(5)
+        .take(100)
         .for_each(|json| {
             let tr: serde_json::Result<Tweet> = serde_json::from_str(&json.to_string());
             match tr {

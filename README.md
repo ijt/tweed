@@ -1,38 +1,38 @@
-# tweelings: a Twitter sentiment grapher
+# tweed: a tweet sentiment plotter
 
 ## System structure
 
 The browser side is done with plot.ly. It keeps a websocket open to the server
 side to stream the latest sentiment values.
 
-The backend is a Rust program that runs a webserver plus a thread that pulls
-tweets from Twitter and saves their time-averaged sentiment scores to a SQLite
-database.
+The backend is a Rust program that runs a webserver to generate plots plus a thread that pulls
+tweets from Twitter, computes their sentiment scores and saves the scores to a SQLite database.
 
 ### Schema
 
 The schema for the time series is something like this:
 
 ```sql
-CREATE TABLE sentiments(
-	timestamp INTEGER,
-	keyword TEXT,
-	sentiment FLOAT,
+create table sentiments(
+	timestamp integer,
+	keyword text,
+	sentiment float,
 )
 ```
 
-The sentiments are calculated as the average sentiment for the tweets for the
-keyword over the sampling interval.
+Each row contains the sentiment for a single tweet containing a keyword.
+A single tweet may contain more than one keyword, so it may result in
+multiple rows in this table.
 
-### Time-averaged sentiment
+### URL scheme
 
-Two hashmaps are updated from the incoming tweets, one counting how many
-tweets match each keyword and another adding up the sentiment values for
-each keyword.
+`http://tweed.best` shows sentiments over the past day
+`http://tweed.best?days=2` shows the sentiments for tweets over the past 2 days.
 
-Periodically, the average sentiment for each keyword is computed from these
-hashmaps and stored in the database. The hashmaps are then cleared for the
-next interval.
+### Plotting
+
+`http://tweed.best?avg=1h` plots using an hour-long averaging window. The averaging is done on the server side to
+minimize the amount of data sent over the wire.
 
 ## Deployment
 
