@@ -166,7 +166,12 @@ fn root() -> Html<String> {
     </script>
     ",
     );
-    out.push_str("</body></html>");
+    out.push_str(
+        "
+    </body>
+</html>
+",
+    );
 
     Html(out)
 }
