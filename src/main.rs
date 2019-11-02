@@ -1,5 +1,7 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
+use chrono::prelude::DateTime;
+use chrono::Utc;
 use rocket::response::content::Html;
 use rocket::{get, routes};
 use rusqlite::Connection;
@@ -10,6 +12,7 @@ use std::collections::HashMap;
 use std::env;
 use std::process::exit;
 use std::thread;
+use std::time::{Duration, UNIX_EPOCH};
 use tokio::runtime::current_thread::block_on_all;
 use twitter_stream::rt::{Future, Stream};
 use twitter_stream::{Token, TwitterStreamBuilder};
@@ -122,7 +125,10 @@ fn root() -> Html<String> {
     let mut keys_to_ys: HashMap<String, Vec<String>> = HashMap::new();
     for s in sentiments {
         let s2 = s.unwrap();
-        let x = format!("{}", s2.timestamp);
+        let d = UNIX_EPOCH + Duration::from_secs(s2.timestamp as u64);
+        let datetime = DateTime::<Utc>::from(d);
+        let timestamp_str = datetime.format("'%Y-%m-%d %H:%M:%S'").to_string();
+        let x = format!("{}", timestamp_str);
         let y = format!("{}", s2.score);
         (*keys_to_xs.entry(s2.keyword.clone()).or_insert(vec![])).push(x);
         (*keys_to_ys.entry(s2.keyword).or_insert(vec![])).push(y);
