@@ -1,5 +1,6 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
+use rocket::response::content::Html;
 use rocket::{get, routes};
 use rusqlite::Connection;
 use rusqlite::NO_PARAMS;
@@ -93,7 +94,7 @@ fn serve_plots() {
 }
 
 #[get("/")]
-fn root() -> String {
+fn root() -> Html<String> {
     let conn = Connection::open(getenv("TWEED_DB_PATH")).unwrap();
 
     let mut stmt = conn
@@ -116,12 +117,14 @@ fn root() -> String {
         .unwrap();
 
     let mut out = String::new();
+    out.push_str("<html><body>");
     for s in sentiments {
         let s2 = s.unwrap();
         out.push_str(&format!("{}: {}: {}<br>", s2.timestamp, s2.keyword, s2.score).to_string());
     }
+    out.push_str("</body></html>");
 
-    out
+    Html(out)
 }
 
 struct Sentiment {
