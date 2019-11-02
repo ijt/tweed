@@ -17,6 +17,7 @@ create table sentiments(
 	timestamp integer,
 	keyword text,
 	sentiment float,
+	tweet text,
 )
 ```
 
