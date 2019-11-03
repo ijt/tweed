@@ -29,6 +29,8 @@ pub fn average_sentiments(tweed_db_path: String, keywords: Vec<String>) {
         for kw in &keywords {
             let mut minutes_totals: BTreeMap<Duration, f64> = BTreeMap::new();
             let mut minutes_counts: BTreeMap<Duration, u64> = BTreeMap::new();
+            // This get_totals_counts fn exists to limit the scope of the stmt variable
+            // it contains.
             let mut get_totals_counts = || {
                 let mut stmt = conn
                     .prepare(
