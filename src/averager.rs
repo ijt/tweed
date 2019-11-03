@@ -73,8 +73,13 @@ pub fn average_sentiments(tweed_db_path: String, keywords: Vec<String>) {
                     let count = minutes_counts.get(&d).unwrap();
                     let avg = total / (*count as f64);
                     tx.execute(
-                        "insert into avg_sentiments (timestamp, keyword, score) values (?1, ?2, ?3)",
-                        params![&(d.as_secs() as i64), &kw, &avg]).unwrap();
+                        "insert into avg_sentiments (timestamp, keyword, score)
+                        select ?1, ?2, ?3
+                        where not exists (select 1 from avg_sentiments where timestamp = ?1 and keyword = ?2)
+                        ",
+                        params![&(d.as_secs() as i64), &kw, &avg],
+                    )
+                    .unwrap();
                 }
 
                 // Remove all the tweet-wise scores gathered earlier from the sentiments table.
