@@ -26,7 +26,7 @@ fn root(sigma: Option<f64>, size: Option<i32>, keywords: Option<String>) -> Html
         .prepare(
             "
         select timestamp, keyword, score
-        from sentiments
+        from avg_sentiments
     ",
         )
         .unwrap();
@@ -129,12 +129,6 @@ fn root(sigma: Option<f64>, size: Option<i32>, keywords: Option<String>) -> Html
     Html(out)
 }
 
-struct Sentiment {
-    timestamp: i64,
-    keyword: String,
-    score: f64,
-}
-
 #[derive(Serialize, Deserialize, Debug)]
 struct Tweet {
     created_at: String,
@@ -149,4 +143,10 @@ fn getenv(s: &str) -> String {
             exit(1);
         }
     }
+}
+
+struct Sentiment {
+    timestamp: i64,
+    keyword: String,
+    score: f64,
 }

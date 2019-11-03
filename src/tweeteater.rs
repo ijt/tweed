@@ -3,34 +3,15 @@ use rusqlite::Connection;
 use rusqlite::NO_PARAMS;
 use sentiment::analyze;
 use serde::{Deserialize, Serialize};
-use std::env;
-use std::process::exit;
 use tokio::runtime::current_thread::block_on_all;
 use twitter_stream::rt::{Future, Stream};
 use twitter_stream::{Token, TwitterStreamBuilder};
 
-pub fn eat_tweets() {
-    let token = Token::new(
-        getenv("CONSUMER_KEY"),
-        getenv("CONSUMER_SECRET"),
-        getenv("ACCESS_KEY"),
-        getenv("ACCESS_SECRET"),
-    );
-
-    let conn = Connection::open(getenv("TWEED_DB_PATH")).unwrap();
-    let args: Vec<String> = env::args().collect();
-    if args.len() != 1 + 1 {
-        println!(
-            "usage: tweed keywords
-
-where keywords is a comma-separated list of topic keywords
-"
-        );
-        exit(1);
-    }
-    let keywords_str: &str = &args[1];
-    let keywords: Vec<&str> = keywords_str.clone().split(",").collect();
-
+/// streams tweets from the Twitter API, scores their sentiments
+/// and stores the sentiments on their keywords in the sentiments table
+/// in a SQLite database at tweed_db_path.
+pub fn eat_tweets(tweed_db_path: String, keywords: Vec<String>, token: Token) {
+    let conn = Connection::open(tweed_db_path).unwrap();
     conn.execute(
         "create table if not exists sentiments(
             timestamp integer not null,
@@ -41,8 +22,10 @@ where keywords is a comma-separated list of topic keywords
     )
     .unwrap();
 
+    let kwstr: &str = &keywords.join(",").to_string();
+
     let future = TwitterStreamBuilder::filter(token)
-        .track(Some(keywords_str))
+        .track(Some(kwstr))
         .listen()
         .unwrap()
         .flatten_stream()
@@ -53,15 +36,15 @@ where keywords is a comma-separated list of topic keywords
                 Ok(t) => {
                     let score = analyze(t.text.clone()).comparative;
                     for kw in keywords.clone() {
-                        let kw2: String = kw.to_string();
+                        let kwstr: &str = &kw.to_string();
                         let ts = parse_tweet_datetime(&t.created_at.to_string());
                         let tss: &str = &format!("{}", ts).to_string();
-                        if t.text.contains(kw) {
+                        if t.text.contains(kwstr) {
                             conn.execute(
                                 "insert into sentiments (timestamp, keyword, score)
                                      values (?1, ?2, ?3)
                                     ",
-                                &[tss, &kw2, &format!("{}", score)],
+                                &[tss, &kw, &format!("{}", score)],
                             )
                             .unwrap();
                         }
@@ -83,16 +66,6 @@ where keywords is a comma-separated list of topic keywords
 struct Tweet {
     created_at: String,
     text: String,
-}
-
-fn getenv(s: &str) -> String {
-    match env::var(s) {
-        Ok(v) => v,
-        Err(_) => {
-            println!("${} not defined", s);
-            exit(1);
-        }
-    }
 }
 
 fn parse_tweet_datetime(dts: &str) -> i64 {
