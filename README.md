@@ -33,9 +33,8 @@ multiple rows in this table.
 
 ### URL parameters
 
-* sigma: amount of jitter to add to prevent points from overlapping, e.g., 0.001, default 0
-* size: point size in pixels, default 4
 * keywords: comma-separated list of keywords to plot, default "", meaning all of them
+* sigma: amount of jitter to add to prevent points from overlapping, e.g., 0.001, default 0
 
 ## How to run it
 

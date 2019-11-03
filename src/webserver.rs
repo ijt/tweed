@@ -17,8 +17,8 @@ pub fn serve_plots() {
 
 /// The sigma parameter specifies the standard deviation of some jitter for the scatter points
 /// so they don't overlap as much.
-#[get("/?<sigma>&<size>&<keywords>")]
-fn root(sigma: Option<f64>, size: Option<i32>, keywords: Option<String>) -> Html<String> {
+#[get("/?<sigma>&<keywords>")]
+fn root(sigma: Option<f64>, keywords: Option<String>) -> Html<String> {
     let conn = Connection::open(getenv("TWEED_DB_PATH")).unwrap();
 
     // Get the sentiments from the database.
