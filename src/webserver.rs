@@ -99,17 +99,11 @@ fn root(sigma: Option<f64>, size: Option<i32>, keywords: Option<String>) -> Html
             "
             {{
                 name: \"{}\",
-                mode: \"markers\",
-                marker: {{ size: {size} }},
-                type: \"scatter\",
                 x: [{}],
                 y: [{}]
             }},
 ",
-            k,
-            xs_str,
-            ys_str,
-            size = size.unwrap_or(4i32)
+            k, xs_str, ys_str,
         );
         out.push_str(&part.to_string());
     }
