@@ -1,4 +1,4 @@
-use rusqlite::{params, Connection, NO_PARAMS};
+use rusqlite::{params, Connection};
 use std::collections::BTreeMap;
 use std::thread::sleep;
 use std::time;
@@ -9,15 +9,6 @@ use std::time::{Duration, SystemTime};
 /// calculation.
 pub fn average_sentiments(tweed_db_path: String, keywords: Vec<String>) {
     let mut conn = Connection::open(tweed_db_path).unwrap();
-    conn.execute(
-        "create table if not exists avg_sentiments(
-            timestamp integer not null,
-            keyword text not null,
-            score float not null
-        )",
-        NO_PARAMS,
-    )
-    .unwrap();
 
     loop {
         // Figure out the most recently completed minute, call this tf.

@@ -3,6 +3,7 @@
 mod averager;
 mod tweeteater;
 mod webserver;
+use rusqlite::{Connection, NO_PARAMS};
 use std::env;
 use std::process::exit;
 use std::thread;
@@ -36,6 +37,27 @@ where keywords is a comma-separated list of topic keywords
         getenv("ACCESS_KEY"),
         getenv("ACCESS_SECRET"),
     );
+
+    // Create tables if needed.
+    let conn = Connection::open(getenv("TWEED_DB_PATH")).unwrap();
+    conn.execute(
+        "create table if not exists avg_sentiments(
+            timestamp integer not null,
+            keyword text not null,
+            score float not null
+        )",
+        NO_PARAMS,
+    )
+    .unwrap();
+    conn.execute(
+        "create table if not exists sentiments(
+            timestamp integer not null,
+            keyword text not null,
+            score float not null
+        )",
+        NO_PARAMS,
+    )
+    .unwrap();
 
     let h1 = thread::spawn(|| tweeteater::eat_tweets(tweed_db_path1, kws1, token));
     let h2 = thread::spawn(|| averager::average_sentiments(tweed_db_path2, kws2));

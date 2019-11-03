@@ -1,6 +1,5 @@
 use chrono::DateTime;
 use rusqlite::Connection;
-use rusqlite::NO_PARAMS;
 use sentiment::analyze;
 use serde::{Deserialize, Serialize};
 use tokio::runtime::current_thread::block_on_all;
@@ -12,15 +11,6 @@ use twitter_stream::{Token, TwitterStreamBuilder};
 /// in a SQLite database at tweed_db_path.
 pub fn eat_tweets(tweed_db_path: String, keywords: Vec<String>, token: Token) {
     let conn = Connection::open(tweed_db_path).unwrap();
-    conn.execute(
-        "create table if not exists sentiments(
-            timestamp integer not null,
-            keyword text not null,
-            score float not null
-        )",
-        NO_PARAMS,
-    )
-    .unwrap();
 
     let kwstr: &str = &keywords.join(",").to_string();
 
