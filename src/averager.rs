@@ -74,8 +74,11 @@ pub fn average_sentiments(tweed_db_path: String, keywords: Vec<String>) {
                 }
 
                 // Remove all the tweet-wise scores gathered earlier from the sentiments table.
-                tx.execute("delete from sentiments where timestamp < ?1", params![tf])
-                    .unwrap();
+                tx.execute(
+                    "delete from sentiments where timestamp < ?1 and keyword = ?2",
+                    params![tf, kw],
+                )
+                .unwrap();
 
                 tx.commit().unwrap();
             };
