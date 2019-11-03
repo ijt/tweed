@@ -10,7 +10,9 @@ tweets from Twitter, computes their sentiment scores and saves the scores to a S
 Here is a diagram showing how the information flows:
 
 ```
-|Twitter API| => |tweeteater thread| => |SQLite db| => |webserver thread| => |plotly in browser|
+|Twitter API| => |tweeteater thread| => |sentiments table in SQLite db|
+    => |averager thread| => |avg_sentiments table in SQLite db|
+    => |webserver thread| => |plotly in browser|
 ```
 
 ### Schema
