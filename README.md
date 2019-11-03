@@ -33,7 +33,7 @@ multiple rows in this table.
 
 ### URL parameters
 
-* keywords: comma-separated list of keywords to plot, default "", meaning all of them
+* keywords: comma-separated list of keywords to plot. Defaults to "", meaning all of them.
 
 ## How to run it
 
