@@ -1,5 +1,7 @@
 use rusqlite::{params, Connection, NO_PARAMS};
 use std::collections::BTreeMap;
+use std::thread::sleep;
+use std::time;
 use std::time::{Duration, SystemTime};
 
 /// computes minute-wise averages for scores in the sentiments table, stores those in the
@@ -84,6 +86,8 @@ pub fn average_sentiments(tweed_db_path: String, keywords: Vec<String>) {
             };
             update();
         }
+
+        sleep(time::Duration::from_secs(1));
     }
 }
 
