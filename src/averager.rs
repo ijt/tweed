@@ -33,9 +33,13 @@ pub fn average_sentiments(tweed_db_path: String, keywords: Vec<String>) {
                 order by timestamp",
                     )
                     .unwrap();
+                struct Sentiment {
+                    timestamp: i64,
+                    score: f64,
+                }
                 let sentiments = stmt
                     .query_map(params![tf, kw], |row| {
-                        Ok(Sentiment2 {
+                        Ok(Sentiment {
                             timestamp: row.get(0).unwrap(),
                             score: row.get(1).unwrap(),
                         })
@@ -87,10 +91,4 @@ pub fn average_sentiments(tweed_db_path: String, keywords: Vec<String>) {
 
         sleep(time::Duration::from_secs(1));
     }
-}
-
-// This is called Sentiment2 because calling it Sentiment made it show up red in Intellij.
-struct Sentiment2 {
-    timestamp: i64,
-    score: f64,
 }
